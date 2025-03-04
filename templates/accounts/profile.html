@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - UniHub</title>
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #4776E6;
+            margin-right: 30px;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #4776E6;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="profile-header">
+            {% if user_profile.profile_picture %}
+                <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+            {% else %}
+                <img src="/static/accounts/images/default-avatar.png" alt="Default Profile" class="profile-picture">
+            {% endif %}
+
+            <h1>{{ user_profile.get_full_name|default:user_profile.username }}'s Profile</h1>
+        </div>
+
+        <div class="profile-info">
+            <p><strong>Username:</strong> {{ user_profile.username }}</p>
+            <p><strong>Email:</strong> {{ user_profile.email }}</p>
+            <p><strong>First Name:</strong> {{ user_profile.first_name }}</p>
+            <p><strong>Last Name:</strong> {{ user_profile.last_name }}</p>
+            {% if user_profile.role %}
+                <p><strong>Role:</strong> {{ user_profile.get_role_display }}</p>
+            {% endif %}
+            {% if user_profile.department %}
+                <p><strong>Department:</strong> {{ user_profile.department }}</p>
+            {% endif %}
+            {% if user_profile.student_id %}
+                <p><strong>Student ID:</strong> {{ user_profile.student_id }}</p>
+            {% endif %}
+        </div>
+
+        <a href="{% url 'profile_edit' %}" class="btn btn-primary">Edit Profile</a>
+        <a href="{% url 'password_change' %}" class="btn btn-secondary">Change Password</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Cafeteria - UniHub</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .cafeteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .cafeteria-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .cafeteria-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .cafeteria-image {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+
+        .cafeteria-info {
+            padding: 20px;
+        }
+
+        .cafeteria-name {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+
+        .cafeteria-location {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .cafeteria-hours {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #3a67d4;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status-open {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-closed {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .no-cafeterias {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .cafeteria-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Select a Cafeteria</h1>
+            <p>Choose a cafeteria to view today's menu and place an order.</p>
+        </div>
+
+        {% if cafeterias %}
+            <div class="cafeteria-grid">
+                {% for cafeteria in cafeterias %}
+                    <div class="cafeteria-card">
+                        {% if cafeteria.image %}
+                            <img src="{{ cafeteria.image.url }}" alt="{{ cafeteria.name }}" class="cafeteria-image">
+                        {% endif %}
+                        <div class="cafeteria-info">
+                            <h2 class="cafeteria-name">{{ cafeteria.name }}</h2>
+                            <div class="cafeteria-location">
+                                <strong>Location:</strong> {{ cafeteria.location }}
+                            </div>
+                            <div class="cafeteria-hours">
+                                <strong>Hours:</strong> {{ cafeteria.opening_time|time:"g:i A" }} - {{ cafeteria.closing_time|time:"g:i A" }}
+                            </div>
+
+                            {% now "H:i" as current_time %}
+                            {% if cafeteria.opening_time|time:"H:i" <= current_time and current_time <= cafeteria.closing_time|time:"H:i" %}
+                                <div class="status-badge status-open">Open Now</div>
+                            {% else %}
+                                <div class="status-badge status-closed">Closed</div>
+                            {% endif %}
+
+                            <a href="{% url 'cafeteria:daily_menu' %}?cafeteria={{ cafeteria.id }}" class="btn">View Menu</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-cafeterias">
+                <h2>No Cafeterias Available</h2>
+                <p>There are currently no cafeterias in the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

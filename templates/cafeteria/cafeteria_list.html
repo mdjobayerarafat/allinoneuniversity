@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Cafeterias - UniHub</title>
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .cafeteria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .cafeteria-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .cafeteria-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .cafeteria-info {
+            padding: 15px;
+        }
+
+        .cafeteria-name {
+            font-size: 20px;
+            margin: 0 0 10px;
+            color: #333;
+        }
+
+        .cafeteria-location {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .cafeteria-hours {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .no-cafeterias {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Campus Cafeterias</h1>
+            <p>Find all the dining options available on campus.</p>
+        </div>
+
+        {% if cafeterias %}
+            <div class="cafeteria-grid">
+                {% for cafeteria in cafeterias %}
+                    <a href="{% url 'cafeteria:cafeteria_detail' cafeteria.pk %}" class="cafeteria-card">
+                        <div class="cafeteria-info">
+                            <h2 class="cafeteria-name">{{ cafeteria.name }}</h2>
+                            <div class="cafeteria-location">{{ cafeteria.location }}</div>
+                            <div class="cafeteria-hours">
+                                Open: {{ cafeteria.opening_time|time:"g:i A" }} - {{ cafeteria.closing_time|time:"g:i A" }}
+                            </div>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-cafeterias">
+                <h2>No cafeterias found</h2>
+                <p>There are currently no cafeterias listed in the system.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

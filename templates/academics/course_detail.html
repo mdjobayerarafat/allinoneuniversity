@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ course.code }}: {{ course.name }} - UniHub</title>
+    <style>
+        .course-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .course-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .course-code {
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .course-info {
+            margin: 20px 0;
+        }
+
+        .section-title {
+            margin: 30px 0 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .sections-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .sections-table th, .sections-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sections-table th {
+            background-color: #f5f5f5;
+        }
+
+        .sections-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .status-open {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="course-container">
+        <div class="course-header">
+            <h1><span class="course-code">{{ course.code }}</span> {{ course.name }}</h1>
+            <div class="course-info">
+                <p><strong>Department:</strong> {{ course.department.name }}</p>
+                <p><strong>Credit Hours:</strong> {{ course.credits }}</p>
+            </div>
+            <div class="course-description">
+                <h2>Description</h2>
+                <p>{{ course.description }}</p>
+            </div>
+        </div>
+
+        <h2 class="section-title">Available Sections</h2>
+        {% if sections %}
+            <table class="sections-table">
+                <thead>
+                    <tr>
+                        <th>Section</th>
+                        <th>Instructor</th>
+                        <th>Schedule</th>
+                        <th>Location</th>
+                        <th>Availability</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for section in sections %}
+                        <tr>
+                            <td>{{ section.section_number }}</td>
+                            <td>{{ section.instructor.user.get_full_name }}</td>
+                            <td>
+                                {% for schedule in section.schedules.all %}
+                                    {{ schedule.get_day_display }}: {{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}<br>
+                                {% endfor %}
+                            </td>
+                            <td>{{ section.location }}</td>
+                            <td>
+                                {% if section.enrolled < section.capacity %}
+                                    <span class="status-open">{{ section.capacity|add:"-"|add:section.enrolled }} seats available</span>
+                                {% else %}
+                                    <span class="status-closed">Class Full</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'academics:class_section_detail' section.pk %}">View</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No sections currently available for this course.</p>
+        {% endif %}
+
+        <a href="{% url 'academics:course_list' %}" class="back-link">← Back to Courses</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Schedule - UniHub</title>
+    <style>
+        .schedule-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .schedule-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .schedule-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .calendar-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .upcoming-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .section-title {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .days-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .day-card {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .day-title {
+            font-weight: bold;
+            text-align: center;
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .class-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: white;
+            border-left: 4px solid #4776E6;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .class-time {
+            font-weight: bold;
+            color: #4776E6;
+        }
+
+        .class-name {
+            margin: 5px 0;
+        }
+
+        .class-instructor {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .class-location {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .upcoming-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .upcoming-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #4776E6;
+            background-color: #f8f9fa;
+        }
+
+        .upcoming-title {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+
+        .upcoming-course {
+            color: #4776E6;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .upcoming-date {
+            color: #dc3545;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .no-items {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .current-semester {
+            background-color: #eef2ff;
+            border-radius: 4px;
+            padding: 5px 10px;
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 0.9em;
+            color: #4776E6;
+        }
+
+        .enrolled-courses {
+            margin-top: 30px;
+        }
+
+        .course-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .course-table th, .course-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .course-table th {
+            background-color: #f5f5f5;
+        }
+
+        .course-table tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            background-color: #c82333;
+        }
+
+        .view-all {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .view-all:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="schedule-container">
+        <div class="schedule-header">
+            <h1>My Schedule <span class="current-semester">Spring 2025</span></h1>
+        </div>
+
+        <div class="schedule-grid">
+            <div class="calendar-container">
+                <h2 class="section-title">Weekly Schedule</h2>
+
+                <div class="days-container">
+                    {% for day, classes in schedule.items %}
+                        <div class="day-card">
+                            <h3 class="day-title">
+                                {% if day == 'MON' %}Monday
+                                {% elif day == 'TUE' %}Tuesday
+                                {% elif day == 'WED' %}Wednesday
+                                {% elif day == 'THU' %}Thursday
+                                {% elif day == 'FRI' %}Friday
+                                {% elif day == 'SAT' %}Saturday
+                                {% elif day == 'SUN' %}Sunday
+                                {% endif %}
+                            </h3>
+
+                            {% if classes %}
+                                {% for class in classes %}
+                                    <div class="class-item">
+                                        <div class="class-time">{{ class.start_time|time:"g:i A" }} - {{ class.end_time|time:"g:i A" }}</div>
+                                        <div class="class-name">{{ class.section.course.code }}: {{ class.section.course.name }}</div>
+                                        <div class="class-instructor">{{ class.section.instructor.user.get_full_name }}</div>
+                                        <div class="class-location">{{ class.section.location }}</div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-items">No classes</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="upcoming-container">
+                <h2 class="section-title">Upcoming Assignments</h2>
+                {% if upcoming_assignments %}
+                    <ul class="upcoming-list">
+                        {% for assignment in upcoming_assignments %}
+                            <li class="upcoming-item">
+                                <h4 class="upcoming-title">{{ assignment.title }}</h4>
+                                <div class="upcoming-course">{{ assignment.class_section.course.code }}</div>
+                                <div class="upcoming-date">Due: {{ assignment.due_date|date:"M d, Y" }}</div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'academics:assignment_list' %}?status=upcoming" class="view-all">View All Assignments</a>
+                {% else %}
+                    <div class="no-items">No upcoming assignments</div>
+                {% endif %}
+
+                <h2 class="section-title">Upcoming Exams</h2>
+                {% if upcoming_exams %}
+                    <ul class="upcoming-list">
+                        {% for exam in upcoming_exams %}
+                            <li class="upcoming-item">
+                                <h4 class="upcoming-title">{{ exam.title }}</h4>
+                                <div class="upcoming-course">{{ exam.class_section.course.code }}</div>
+                                <div class="upcoming-date">Date: {{ exam.date|date:"M d, Y" }}</div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'academics:exam_list' %}?status=upcoming" class="view-all">View All Exams</a>
+                {% else %}
+                    <div class="no-items">No upcoming exams</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="enrolled-courses">
+            <h2 class="section-title">Enrolled Courses</h2>
+            {% if enrollments %}
+                <table class="course-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Section</th>
+                            <th>Instructor</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for enrollment in enrollments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ enrollment.class_section.course.code }}</strong>:
+                                    {{ enrollment.class_section.course.name }}
+                                </td>
+                                <td>{{ enrollment.class_section.section_number }}</td>
+                                <td>{{ enrollment.class_section.instructor.user.get_full_name }}</td>
+                                <td>{{ enrollment.class_section.location }}</td>
+                                <td>
+                                    <form method="post" action="{% url 'academics:drop_class' enrollment.class_section.pk %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn" onclick="return confirm('Are you sure you want to drop this class?');">Drop</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-items">You are not currently enrolled in any courses.</div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

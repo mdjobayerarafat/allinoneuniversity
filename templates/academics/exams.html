@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Exams - UniHub</title>
+    <style>
+        .exams-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .exams-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .filters {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn.active {
+            background-color: #2b4d98;
+        }
+
+        .exam-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .exam-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-left: 4px solid #4776E6;
+        }
+
+        .exam-item.past {
+            border-left: 4px solid #6c757d;
+        }
+
+        .exam-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .exam-title {
+            margin: 0;
+            color: #333;
+        }
+
+        .course-code {
+            display: inline-block;
+            background-color: #4776E6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .exam-date {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .past .exam-date {
+            color: #6c757d;
+        }
+
+        .time-remaining {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .section-info {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .exam-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+
+        .detail-value {
+            font-weight: bold;
+        }
+
+        .no-exams {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .pagination .current {
+            background-color: #4776E6;
+            color: white;
+            border-color: #4776E6;
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .exam-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="exams-container">
+        <div class="exams-header">
+            <h1>My Exams</h1>
+        </div>
+
+        <div class="filters">
+            <div class="filter-form">
+                <a href="{% url 'academics:exam_list' %}" class="btn {% if not request.GET.status %}active{% endif %}">All</a>
+                <a href="{% url 'academics:exam_list' %}?status=upcoming" class="btn {% if request.GET.status == 'upcoming' %}active{% endif %}">Upcoming</a>
+                <a href="{% url 'academics:exam_list' %}?status=past" class="btn {% if request.GET.status == 'past' %}active{% endif %}">Past</a>
+            </div>
+        </div>
+
+        {% if exams %}
+            <div class="exam-list">
+                {% for exam in exams %}
+                    <div class="exam-item {% if exam.date < now %}past{% endif %}">
+                        <div class="exam-header">
+                            <h2 class="exam-title">
+                                <span class="course-code">{{ exam.class_section.course.code }}</span>
+                                {{ exam.title }}
+                            </h2>
+                            <div class="exam-date">
+                                Date: {{ exam.date|date:"F d, Y" }} - {{ exam.time|time:"g:i A" }}
+                                <div class="time-remaining">
+                                    {% if exam.date >= now|date:"Y-m-d" %}
+                                        {{ exam.date|timeuntil:now }} until exam
+                                    {% else %}
+                                        {{ exam.date|timesince:now }} ago
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-info">
+                            {{ exam.class_section.course.name }} -
+                            Section {{ exam.class_section.section_number }} -
+                            {{ exam.class_section.instructor.user.get_full_name }}
+                        </div>
+
+                        <div class="exam-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Location</span>
+                                <span class="detail-value">{{ exam.location }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Duration</span>
+                                <span class="detail-value">{{ exam.duration }} minutes</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Format</span>
+                                <span class="detail-value">{{ exam.format }}</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Weight</span>
+                                <span class="detail-value">{{ exam.weight }}% of final grade</span>
+                            </div>
+                        </div>
+
+                        {% if exam.description %}
+                            <div class="exam-description">
+                                <p>{{ exam.description|linebreaks }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1">&laquo; First</a>
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <a class="current">{{ i }}</a>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ i }}">{{ i }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-exams">
+                <h2>No exams found</h2>
+                <p>{% if request.GET.status %}Try changing your filter or{% else %}You don't have any scheduled exams{% endif %} check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

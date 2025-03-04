@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section.course.code }} Section {{ section.section_number }} - UniHub</title>
+    <style>
+        /* CSS styles remain unchanged */
+    </style>
+</head>
+<body>
+    <div class="section-container">
+        <!-- Display messages if any -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="messages message-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="section-header">
+            <h1><span class="course-code">{{ section.course.code }}</span> {{ section.course.name }} - Section {{ section.section_number }}</h1>
+            <p>{{ section.semester }}</p>
+        </div>
+
+        <div class="section-info">
+            <h2>Section Information</h2>
+            <p><strong>Course:</strong> {{ section.course.name }}</p>
+            <p><strong>Section Number:</strong> {{ section.section_number }}</p>
+            <p><strong>Location:</strong> {{ section.location }}</p>
+            <p><strong>Capacity:</strong>
+                {% if section.enrolled < section.capacity %}
+                    <span class="status-open">{{ section.enrolled }} / {{ section.capacity }} ({{ section.capacity|add:-section.enrolled }} seats available)</span>
+                {% else %}
+                    <span class="status-closed">{{ section.enrolled }} / {{ section.capacity }} (Class Full)</span>
+                {% endif %}
+            </p>
+        </div>
+
+        <div class="instructor-info">
+            <h2>Instructor</h2>
+            <p><strong>Name:</strong> {{ section.instructor.user.get_full_name }}</p>
+            <p><strong>Title:</strong> {{ section.instructor.title }}</p>
+            <p><strong>Email:</strong> {{ section.instructor.user.email }}</p>
+            <p><strong>Office:</strong> {{ section.instructor.office_location }}</p>
+            <a href="{% url 'academics:faculty_detail' section.instructor.pk %}">View Instructor Profile</a>
+        </div>
+
+        <h2 class="section-title">Class Schedule</h2>
+        {% if schedules %}
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Time</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in schedules %}
+                        <tr>
+                            <td>{{ schedule.get_day_display }}</td>
+                            <td>{{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}</td>
+                            <td>{{ section.location }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No schedule information available.</p>
+        {% endif %}
+
+        <h2 class="section-title">Assignments</h2>
+        <div class="assignments-list">
+            {% if assignments %}
+                {% for assignment in assignments %}
+                    <div class="assignment-item {% if assignment.due_date|date:'Y-m-d' >= now|date:'Y-m-d' %}upcoming{% else %}past{% endif %}">
+                        <h3>{{ assignment.title }}</h3>
+                        <p>{{ assignment.description|truncatewords:30 }}</p>
+                        <p class="due-date">
+                            <strong>Due:</strong> {{ assignment.due_date|date:"F d, Y - g:i A" }}
+                            {% if assignment.due_date|date:'Y-m-d' >= now|date:'Y-m-d' %}
+                                ({{ assignment.due_date|timeuntil }} remaining)
+                            {% else %}
+                                ({{ assignment.due_date|timesince }} ago)
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No assignments have been posted for this class.</p>
+            {% endif %}
+        </div>
+
+        <h2 class="section-title">Exams</h2>
+        <div class="exams-list">
+            {% if exams %}
+                {% for exam in exams %}
+                    <div class="exam-item {% if exam.date|date:'Y-m-d' >= now|date:'Y-m-d' %}upcoming{% else %}past{% endif %}">
+                        <h3>{{ exam.title }}</h3>
+                        <p>{{ exam.description|truncatewords:30 }}</p>
+                        <p class="due-date">
+                            <strong>Date:</strong> {{ exam.date|date:"F d, Y" }} at {{ exam.time|time:"g:i A" }}
+                            {% if exam.date|date:'Y-m-d' >= now|date:'Y-m-d' %}
+                                ({{ exam.date|timeuntil }} from now)
+                            {% else %}
+                                ({{ exam.date|timesince }} ago)
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No exams have been scheduled for this class.</p>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+            <div class="enrollment-actions">
+                {% if is_enrolled %}
+                    <form action="{% url 'academics:drop_class' section.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to drop this class?')">Drop Class</button>
+                    </form>
+                {% else %}
+                    <form action="{% url 'academics:enroll' section.pk %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary" {% if section.enrolled >= section.capacity %}disabled{% endif %}>
+                            {% if section.enrolled >= section.capacity %}Class Full{% else %}Enroll in Class{% endif %}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <a href="{% url 'academics:course_detail' section.course.pk %}" class="back-link">← Back to Course</a>
+    </div>
+</body>
+</html>

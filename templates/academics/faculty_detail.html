@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ faculty_member.user.get_full_name }} - Faculty Profile</title>
+    <style>
+        .faculty-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .faculty-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .faculty-picture {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .faculty-details h1 {
+            margin-bottom: 5px;
+        }
+
+        .faculty-title {
+            color: #6c757d;
+            font-style: italic;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .faculty-contact {
+            margin-top: 20px;
+        }
+
+        .faculty-contact p {
+            margin: 5px 0;
+        }
+
+        .info-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .class-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: transform 0.3s;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .course-code {
+            background-color: #4776E6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #4776E6;
+            color: white;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .office-hours {
+            margin-top: 15px;
+        }
+
+        .office-hours ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .office-hours li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .day {
+            font-weight: bold;
+            display: inline-block;
+            width: 100px;
+        }
+
+        .education-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .education-list li {
+            margin-bottom: 15px;
+        }
+
+        .degree {
+            font-weight: bold;
+        }
+
+        .university {
+            font-style: italic;
+        }
+
+        .year {
+            color: #6c757d;
+        }
+
+        .publications-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .publications-list li {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .publication-title {
+            font-weight: bold;
+        }
+
+        .publication-journal {
+            font-style: italic;
+        }
+
+        .publication-year {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="faculty-container">
+        <div class="faculty-header">
+            {% if faculty_member.profile_picture %}
+                <img src="{{ faculty_member.profile_picture.url }}" alt="{{ faculty_member.user.get_full_name }}" class="faculty-picture">
+            {% else %}
+                <img src="/static/academics/images/default-faculty.png" alt="Default Faculty Image" class="faculty-picture">
+            {% endif %}
+
+            <div class="faculty-details">
+                <h1>{{ faculty_member.user.get_full_name }}</h1>
+                <div class="faculty-title">{{ faculty_member.title }}</div>
+                <p>{{ faculty_member.department.name }}</p>
+
+                <div class="faculty-contact">
+                    <p><strong>Email:</strong> {{ faculty_member.user.email }}</p>
+                    <p><strong>Office:</strong> {{ faculty_member.office_location }}</p>
+                    <p><strong>Phone:</strong> {{ faculty_member.office_phone }}</p>
+                </div>
+            </div>
+        </div>
+
+        {% if faculty_member.bio %}
+            <div class="info-section">
+                <h2 class="section-title">Biography</h2>
+                <div class="faculty-bio">
+                    {{ faculty_member.bio|linebreaks }}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="info-section">
+            <h2 class="section-title">Office Hours</h2>
+            <div class="office-hours">
+                {% if faculty_member.office_hours %}
+                    <ul>
+                        {% for hour in faculty_member.office_hours.all %}
+                            <li>
+                                <span class="day">{{ hour.get_day_display }}:</span>
+                                {{ hour.start_time|time:"g:i A" }} - {{ hour.end_time|time:"g:i A" }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No office hours listed.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2 class="section-title">Education</h2>
+            <ul class="education-list">
+                {% if faculty_member.education.all %}
+                    {% for education in faculty_member.education.all %}
+                        <li>
+                            <div class="degree">{{ education.degree }}</div>
+                            <div class="university">{{ education.institution }}</div>
+                            <div class="year">{{ education.year }}</div>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>No education information available.</p>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="info-section">
+            <h2 class="section-title">Classes</h2>
+            <div class="class-grid">
+                {% if classes %}
+                    {% for section in classes %}
+                        <a href="{% url 'academics:class_section_detail' section.pk %}" class="class-card">
+                            <h3>
+                                <span class="course-code">{{ section.course.code }}</span>
+                                {{ section.course.name }}
+                            </h3>
+                            <p>Section: {{ section.section_number }}</p>
+                            <p>{{ section.semester }}</p>
+                            <p>Enrollment: {{ section.enrolled }} / {{ section.capacity }}</p>
+                        </a>
+                    {% endfor %}
+                {% else %}
+                    <p>No classes currently being taught.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2 class="section-title">Publications</h2>
+            <ul class="publications-list">
+                {% if faculty_member.publications.all %}
+                    {% for publication in faculty_member.publications.all %}
+                        <li>
+                            <div class="publication-title">{{ publication.title }}</div>
+                            <div class="publication-journal">{{ publication.journal }}</div>
+                            <div class="publication-year">{{ publication.year }}</div>
+                            <div>{{ publication.citation }}</div>
+                        </li>
+                    {% endfor %}
+                {% else %}
+                    <p>No publications listed.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <a href="{% url 'academics:faculty_list' %}" class="back-link">← Back to Faculty Directory</a>
+    </div>
+</body>
+</html>

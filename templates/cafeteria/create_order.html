@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Order - UniHub</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .order-form-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+        }
+
+        .form-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-title {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: #4776E6;
+            outline: none;
+        }
+
+        .menu-item-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+
+        .item-details {
+            flex-grow: 1;
+        }
+
+        .item-name {
+            font-weight: 500;
+            margin: 0 0 5px 0;
+        }
+
+        .item-price {
+            color: #4776E6;
+            font-weight: bold;
+        }
+
+        .item-category {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+
+        .item-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .quantity-input {
+            width: 50px;
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 0 10px;
+        }
+
+        .order-summary {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: sticky;
+            top: 20px;
+        }
+
+        .summary-title {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .selected-items {
+            margin-bottom: 20px;
+        }
+
+        .selected-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .item-total {
+            font-weight: bold;
+        }
+
+        .order-total {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #3a67d4;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            .order-form-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Create Order</h1>
+            <p>Select items and customize your order from {{ cafeteria.name }}</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="order-form-container">
+                <div class="main-form">
+                    <div class="form-section">
+                        <h2 class="form-title">Order Details</h2>
+
+                        <div class="form-group">
+                            <label for="{{ form.cafeteria.id_for_label }}">Cafeteria</label>
+                            {{ form.cafeteria }}
+                            {% if form.cafeteria.errors %}
+                                <div class="error">{{ form.cafeteria.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.pickup_time.id_for_label }}">Pickup Time</label>
+                            {{ form.pickup_time }}
+                            {% if form.pickup_time.errors %}
+                                <div class="error">{{ form.pickup_time.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.delivery_option.id_for_label }}">Delivery Option</label>
+                            {{ form.delivery_option }}
+                            {% if form.delivery_option.errors %}
+                                <div class="error">{{ form.delivery_option.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="{{ form.notes.id_for_label }}">Special Instructions</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="error">{{ form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h2 class="form-title">Menu Items</h2>
+
+                        <div class="menu-item-list">
+                            {% for item in menu_items %}
+                                <div class="menu-item">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="item-image">
+                                    {% endif %}
+
+                                    <div class="item-details">
+                                        <h3 class="item-name">{{ item.name }}</h3>
+                                        <div class="item-price">${{ item.price }}</div>
+                                        <div class="item-category">{{ item.category }}</div>
+                                    </div>
+
+                                    <div class="item-actions">
+                                        <button type="button" class="btn-secondary" onclick="decrementItem({{ item.id }})">-</button>
+                                        <input type="number" name="quantity-{{ item.id }}" id="quantity-{{ item.id }}" class="quantity-input" value="0" min="0" max="10">
+                                        <button type="button" class="btn-secondary" onclick="incrementItem({{ item.id }})">+</button>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p>No menu items available for this cafeteria.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-summary">
+                    <h2 class="summary-title">Order Summary</h2>
+
+                    <div class="selected-items" id="selected-items-container">
+                        <div class="empty-cart">Your cart is empty</div>
+                        <!-- Selected items will be displayed here via JavaScript -->
+                    </div>
+
+                    <div class="order-total">
+                        <span>Total:</span>
+                        <span id="order-total-price">$0.00</span>
+                    </div>
+
+                    <button type="submit" class="btn btn-block">Place Order</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Store menu items data
+        const menuItems = {
+            {% for item in menu_items %}
+                "{{ item.id }}": {
+                    "name": "{{ item.name }}",
+                    "price": {{ item.price }},
+                    "id": {{ item.id }}
+                },
+            {% endfor %}
+        };
+
+        // Function to increment item quantity
+        function incrementItem(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            const currentValue = parseInt(input.value) || 0;
+            if (currentValue < 10) {
+                input.value = currentValue + 1;
+                updateOrderSummary();
+            }
+        }
+
+        // Function to decrement item quantity
+        function decrementItem(itemId) {
+            const input = document.getElementById(`quantity-${itemId}`);
+            const currentValue = parseInt(input.value) || 0;
+            if (currentValue > 0) {
+                input.value = currentValue - 1;
+                updateOrderSummary();
+            }
+        }
+
+        // Function to update order summary
+        function updateOrderSummary() {
+            const selectedItemsContainer = document.getElementById('selected-items-container');
+            const orderTotalElement = document.getElementById('order-total-price');
+
+            // Get all quantity inputs
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+
+            let selectedItems = [];
+            let orderTotal = 0;
+
+            // Process each quantity input
+            quantityInputs.forEach(input => {
+                const itemId = input.id.split('-')[1];
+                const quantity = parseInt(input.value) || 0;
+
+                if (quantity > 0 && menuItems[itemId]) {
+                    const item = menuItems[itemId];
+                    const itemTotal = quantity * item.price;
+                    orderTotal += itemTotal;
+
+                    selectedItems.push({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: quantity,
+                        total: itemTotal
+                    });
+                }
+            });
+
+            // Update the DOM
+            if (selectedItems.length > 0) {
+                let html = '';
+
+                selectedItems.forEach(item => {
+                    html += `
+                        <div class="selected-item">
+                            <div>
+                                <span>${item.quantity}x</span>
+                                <span>${item.name}</span>
+                            </div>
+                            <div class="item-total">$${item.total.toFixed(2)}</div>
+                            <input type="hidden" name="items" value="${item.id},${item.quantity}">
+                        </div>
+                    `;
+                });
+
+                selectedItemsContainer.innerHTML = html;
+            } else {
+                selectedItemsContainer.innerHTML = '<div class="empty-cart">Your cart is empty</div>';
+            }
+
+            orderTotalElement.textContent = `$${orderTotal.toFixed(2)}`;
+        }
+
+        // Initialize order summary on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateOrderSummary();
+
+            // Add event listeners to quantity inputs
+            const quantityInputs = document.querySelectorAll('.quantity-input');
+            quantityInputs.forEach(input => {
+                input.addEventListener('change', updateOrderSummary);
+            });
+        });
+    </script>
+</body>
+</html>

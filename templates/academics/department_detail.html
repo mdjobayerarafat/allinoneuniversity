@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ department.name }} - UniHub</title>
+    <style>
+        .department-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .department-header {
+            border-bottom: 2px solid #4776E6;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .department-code {
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .section-title {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin: 30px 0 20px;
+        }
+
+        .faculty-list, .courses-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .faculty-card, .course-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            transition: transform 0.3s;
+        }
+
+        .faculty-card:hover, .course-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .course-code {
+            background-color: #6c757d;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-right: 10px;
+        }
+
+        .course-credits {
+            color: #555;
+            font-size: 14px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="department-container">
+        <div class="department-header">
+            <h1>{{ department.name }} <span class="department-code">{{ department.code }}</span></h1>
+            <p>{{ department.description }}</p>
+        </div>
+
+        <h2 class="section-title">Faculty</h2>
+        <div class="faculty-list">
+            {% for member in faculty %}
+                <div class="faculty-card">
+                    <h3>{{ member.user.get_full_name }}</h3>
+                    <p><strong>{{ member.title }}</strong></p>
+                    <p>Office: {{ member.office_location }}</p>
+                    <a href="{% url 'academics:faculty_detail' member.pk %}">View Profile</a>
+                </div>
+            {% empty %}
+                <p>No faculty members found in this department.</p>
+            {% endfor %}
+        </div>
+
+        <h2 class="section-title">Courses</h2>
+        <div class="courses-list">
+            {% for course in courses %}
+                <div class="course-card">
+                    <h3><span class="course-code">{{ course.code }}</span> {{ course.name }}</h3>
+                    <p class="course-credits">{{ course.credit_hours }} credit hours</p>
+                    <p>{{ course.description|truncatewords:20 }}</p>
+                    <a href="{% url 'academics:course_detail' course.pk %}">View Course</a>
+                </div>
+            {% empty %}
+                <p>No courses found in this department.</p>
+            {% endfor %}
+        </div>
+
+        <a href="{% url 'academics:department_list' %}" class="back-link">← Back to Departments</a>
+    </div>
+</body>
+</html>

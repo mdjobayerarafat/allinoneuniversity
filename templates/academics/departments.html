@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departments - UniHub</title>
+    <style>
+        .departments-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .department-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+
+        .department-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .department-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .department-code {
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .department-description {
+            color: #555;
+            margin-top: 10px;
+        }
+
+        .search-container {
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .search-button {
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="departments-container">
+        <h1>Academic Departments</h1>
+
+        <div class="search-container">
+            <form method="get" class="search-form">
+                <input type="text" name="search" placeholder="Search departments..." class="search-input">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </div>
+
+        <div class="departments-list">
+            {% for department in departments %}
+                <div class="department-card">
+                    <div class="department-header">
+                        <h2>{{ department.name }}</h2>
+                        <span class="department-code">{{ department.code }}</span>
+                    </div>
+                    <div class="department-description">
+                        {{ department.description|truncatewords:30 }}
+                    </div>
+                    <a href="{% url 'academics:department_detail' department.pk %}">View Department</a>
+                </div>
+            {% empty %}
+                <p>No departments found.</p>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

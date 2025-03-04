@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section.course.code }} Section {{ section.section_number }} - UniHub</title>
+    <style>
+        .section-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .section-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .course-code {
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .section-info, .instructor-info {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            margin: 30px 0 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .schedule-table th, .schedule-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .schedule-table th {
+            background-color: #f5f5f5;
+        }
+
+        .assignments-list, .exams-list {
+            margin-top: 20px;
+        }
+
+        .assignment-item, .exam-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .due-date {
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .upcoming {
+            border-left: 4px solid #28a745;
+        }
+
+        .past {
+            border-left: 4px solid #6c757d;
+        }
+
+        .enrollment-actions {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-right: 10px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #4776E6;
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            color: #<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>{{ section.course.code }} Section {{ section.section_number }} - UniHub</title>
+                <style>
+                    .section-container {
+                        max-width: 1000px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+
+                    .section-header {
+                        padding-bottom: 20px;
+                        margin-bottom: 30px;
+                        border-bottom: 2px solid #4776E6;
+                    }
+
+                    .course-code {
+                        background-color: #4776E6;
+                        color: white;
+                        padding: 5px 10px;
+                        border-radius: 4px;
+                        font-weight: bold;
+                        margin-right: 10px;
+                    }
+
+                    .section-info, .instructor-info {
+                        background-color: white;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        padding: 20px;
+                        margin-bottom: 30px;
+                    }
+
+                    .section-title {
+                        margin: 30px 0 15px;
+                        border-bottom: 1px solid #eee;
+                        padding-bottom: 10px;
+                    }
+
+                    .schedule-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+
+                    .schedule-table th, .schedule-table td {
+                        padding: 12px;
+                        text-align: left;
+                        border-bottom: 1px solid #ddd;
+                    }
+
+                    .schedule-table th {
+                        background-color: #f5f5f5;
+                    }
+
+                    .assignments-list, .exams-list {
+                        margin-top: 20px;
+                    }
+
+                    .assignment-item, .exam-item {
+                        background-color: white;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        padding: 15px;
+                        margin-bottom: 15px;
+                    }
+
+                    .due-date {
+                        color: #6c757d;
+                        font-size: 14px;
+                    }
+
+                    .upcoming {
+                        border-left: 4px solid #28a745;
+                    }
+
+                    .past {
+                        border-left: 4px solid #6c757d;
+                    }
+
+                    .enrollment-actions {
+                        margin-top: 30px;
+                        padding: 20px;
+                        background-color: #f8f9fa;
+                        border-radius: 8px;
+                    }
+
+                    .btn {
+                        display: inline-block;
+                        padding: 10px 20px;
+                        margin-right: 10px;
+                        border-radius: 5px;
+                        text-decoration: none;
+                        font-weight: bold;
+                        transition: background-color 0.3s;
+                        cursor: pointer;
+                        border: none;
+                    }
+
+                    .btn-primary {
+                        background-color: #4776E6;
+                        color: white;
+                    }
+
+                    .btn-danger {
+                        background-color: #dc3545;
+                        color: white;
+                    }
+
+                    .back-link {
+                        display: inline-block;
+                        margin-top: 30px;
+                        color: #4776E6;
+                        text-decoration: none;
+                    }
+
+                    .back-link:hover {
+                        text-decoration: underline;
+                    }
+
+                    .status-open {
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+
+                    .status-closed {
+                        color: #dc3545;
+                        font-weight: bold;
+                    }
+
+                    .messages {
+                        padding: 10px;
+                        margin-bottom: 20px;
+                        border-radius: 5px;
+                    }
+
+                    .message-success {
+                        background-color: #d4edda;
+                        color: #155724;
+                    }
+
+                    .message-warning {
+                        background-color: #fff3cd;
+                        color: #856404;
+                    }
+
+                    .message-error {
+                        background-color: #f8d7da;
+                        color: #721c24;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="section-container">
+                    <!-- Display messages if any -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="messages message-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="section-header">
+                        <h1><span class="course-code">{{ section.course.code }}</span> {{ section.course.name }} - Section {{ section.section_number }}</h1>
+                        <p>{{ section.semester }}</p>
+                    </div>
+
+                    <div class="section-info">
+                        <h2>Section Information</h2>
+                        <p><strong>Course:</strong> {{ section.course.name }}</p>
+                        <p><strong>Section Number:</strong> {{ section.section_number }}</p>
+                        <p><strong>Location:</strong> {{ section.location }}</p>
+                        <p><strong>Capacity:</strong>
+                            {% if section.enrolled < section.capacity %}
+                                <span class="status-open">{{ section.enrolled }} / {{ section.capacity }} ({{ section.capacity|sub:section.enrolled }} seats available)</span>
+                            {% else %}
+                                <span class="status-closed">{{ section.enrolled }} / {{ section.capacity }} (Class Full)</span>
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="instructor-info">
+                        <h2>Instructor</h2>
+                        <p><strong>Name:</strong> {{ section.instructor.user.get_full_name }}</p>
+                        <p><strong>Title:</strong> {{ section.instructor.title }}</p>
+                        <p><strong>Email:</strong> {{ section.instructor.user.email }}</p>
+                        <p><strong>Office:</strong> {{ section.instructor.office_location }}</p>
+                        <a href="{% url 'academics:faculty_detail' section.instructor.pk %}">View Instructor Profile</a>
+                    </div>
+
+                    <h2 class="section-title">Class Schedule</h2>
+                    {% if schedules %}
+                        <table class="schedule-table">
+                            <thead>
+                                <tr>
+                                    <th>Day</th>
+                                    <th>Time</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in schedules %}
+                                    <tr>
+                                        <td>{{ schedule.get_day_display }}</td>
+                                        <td>{{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}</td>
+                                        <td>{{ section.location }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>No schedule information available.</p>
+                    {% endif %}
+
+                    <h2 class="section-title">Assignments</h2>
+                    <div class="assignments-list">
+                        {% if assignments %}
+                            {% for assignment in assignments %}
+                                <div class="assignment-item {% if assignment.due_date >= now %}upcoming{% else %}past{% endif %}">
+                                    <h3>{{ assignment.title }}</h3>
+                                    <p>{{ assignment.description|truncatewords:30 }}</p>
+                                    <p class="due-date">
+                                        <strong>Due:</strong> {{ assignment.due_date|date:"F d, Y - g:i A" }}
+                                        {% if assignment.due_date >= now %}
+                                            ({{ assignment.due_date|timeuntil }} remaining)
+                                        {% else %}
+                                            ({{ assignment.due_date|timesince }} ago)
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No assignments have been posted for this class.</p>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="section-title">Exams</h2>
+                    <div class="exams-list">
+                        {% if exams %}
+                            {% for exam in exams %}
+                                <div class="exam-item {% if exam.date >= now %}upcoming{% else %}past{% endif %}">
+                                    <h3>{{ exam.title }}</h3>
+                                    <p>{{ exam.description|truncatewords:30 }}</p>
+                                    <p class="due-date">
+                                        <strong>Date:</strong> {{ exam.date|date:"F d, Y" }} at {{ exam.time|time:"g:i A" }}
+                                        {% if exam.date >= now %}
+                                            ({{ exam.date|timeuntil }} from now)
+                                        {% else %}
+                                            ({{ exam.date|timesince }} ago)
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p>No exams have been scheduled for this class.</p>
+                        {% endif %}
+                    </div>
+
+                    {% if user.is_authenticated %}
+                        <div class="enrollment-actions">
+                            {% if is_enrolled %}
+                                <form action="{% url 'academics:drop_class' section.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to drop this class?')">Drop Class</button>
+                                </form>
+                            {% else %}
+                                <form action="{% url 'academics:enroll' section.pk %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-primary" {% if section.enrolled >= section.capacity %}disabled{% endif %}>
+                                        {% if section.enrolled >= section.capacity %}Class Full{% else %}Enroll in Class{% endif %}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'academics:course_detail' section.course.pk %}" class="back-link">← Back to Course</a>
+                </div>
+            </body>
+            </html>

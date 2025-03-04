@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - UniHub</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .btn:hover {
+            background-color: #3a67d4;
+        }
+
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .order-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-id {
+            font-weight: bold;
+            color: #4776E6;
+        }
+
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .status-processing {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-ready {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-completed {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .order-body {
+            padding: 20px;
+        }
+
+        .order-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+
+        .info-value {
+            font-weight: 500;
+        }
+
+        .order-items {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .item-title {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .item-details {
+            display: flex;
+            align-items: center;
+        }
+
+        .item-quantity {
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 0.85em;
+        }
+
+        .order-total {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+        }
+
+        .order-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .order-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>My Orders</h1>
+            <p>View and track your cafeteria orders</p>
+        </div>
+
+        <a href="{% url 'cafeteria:select_cafeteria' %}" class="btn">Place New Order</a>
+
+        {% if orders %}
+            <div class="order-list">
+                {% for order in orders %}
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-id">Order #{{ order.id }}</div>
+                            <div class="order-status status-{{ order.status|lower }}">{{ order.get_status_display }}</div>
+                        </div>
+                        <div class="order-body">
+                            <div class="order-info">
+                                <div class="info-item">
+                                    <span class="info-label">Cafeteria</span>
+                                    <span class="info-value">{{ order.cafeteria.name }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Ordered On</span>
+                                    <span class="info-value">{{ order.created_at|date:"F j, Y - g:i A" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Pickup Time</span>
+                                    <span class="info-value">{{ order.pickup_time|time:"g:i A" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Delivery Option</span>
+                                    <span class="info-value">{{ order.get_delivery_option_display }}</span>
+                                </div>
+                            </div>
+
+                            <div class="order-items">
+                                <h3 class="item-title">Items</h3>
+                                <div class="item-list">
+                                    {% for item in order.orderitem_set.all %}
+                                        <div class="item">
+                                            <div class="item-details">
+                                                <span class="item-quantity">{{ item.quantity }}x</span>
+                                                <span>{{ item.menu_item.name }}</span>
+                                            </div>
+                                            <div class="item-price">${{ item.price }}</div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+
+                                <div class="order-total">
+                                    <span>Total</span>
+                                    <span>${{ order.total_price }}</span>
+                                </div>
+                            </div>
+
+                            <div class="order-actions">
+                                <a href="{% url 'cafeteria:order_detail' order.id %}" class="btn">View Details</a>
+                                {% if order.status == 'pending' %}
+                                    <a href="{% url 'cafeteria:cancel_order' order.id %}" class="btn btn-secondary">Cancel Order</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <a class="current">{{ i }}</a>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?page={{ i }}">{{ i }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-orders">
+                <h2>No Orders Found</h2>
+                <p>You haven't placed any orders yet.</p>
+                <a href="{% url 'cafeteria:select_cafeteria' %}" class="btn">Place Your First Order</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

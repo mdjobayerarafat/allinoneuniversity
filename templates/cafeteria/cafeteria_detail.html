@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ cafeteria.name }} - UniHub</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .cafeteria-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 768px) {
+            .cafeteria-info {
+                grid-template-columns: 1fr 2fr;
+            }
+        }
+
+        .info-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        .hours {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .section-title {
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .item-image {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .item-info {
+            padding: 15px;
+        }
+
+        .item-name {
+            margin: 0 0 10px;
+            color: #333;
+        }
+
+        .item-description {
+            color: #6c757d;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+
+        .item-price {
+            font-weight: bold;
+            color: #4776E6;
+        }
+
+        .category-badge {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .no-menu {
+            text-align: center;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>{{ cafeteria.name }}</h1>
+        </div>
+
+        <div class="cafeteria-info">
+            <div class="info-card">
+                <h3>Location</h3>
+                <p>{{ cafeteria.location }}</p>
+
+                <div class="hours">
+                    <h3>Hours</h3>
+                    <p>{{ cafeteria.opening_time|time:"g:i A" }} - {{ cafeteria.closing_time|time:"g:i A" }}</p>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h3>Today's Menu</h3>
+                <p>{{ daily_menu.date|date:"F j, Y" }}</p>
+
+                {% if daily_menu %}
+                    <a href="{% url 'cafeteria:create_order' %}?cafeteria={{ cafeteria.id }}" class="btn">Place an Order</a>
+                {% else %}
+                    <p>No menu available for today.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <h2 class="section-title">Menu Items</h2>
+
+        {% if daily_menu %}
+            <div class="menu-grid">
+                {% for item in daily_menu.items.all %}
+                    <div class="menu-item">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="item-image">
+                        {% endif %}
+                        <div class="item-info">
+                            <span class="category-badge">{{ item.category }}</span>
+                            <h3 class="item-name">{{ item.name }}</h3>
+                            <p class="item-description">{{ item.description }}</p>
+                            <div class="item-price">${{ item.price }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-menu">
+                <h3>No menu items available for today</h3>
+                <p>Check back later or visit another cafeteria.</p>
+                <a href="{% url 'cafeteria:cafeteria_list' %}" class="btn">View All Cafeterias</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

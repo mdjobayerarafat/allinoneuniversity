@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses - UniHub</title>
+    <style>
+        .courses-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .courses-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .filters {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .filter-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .filter-form select, .filter-form input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            font-weight: bold;
+        }
+
+        .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .course-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s;
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .course-info {
+            padding: 15px;
+        }
+
+        .course-code {
+            display: inline-block;
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .course-name {
+            font-size: 18px;
+            margin: 0 0 10px;
+            color: #333;
+        }
+
+        .course-department {
+            color: #6c757d;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .course-credits {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .course-description {
+            margin-top: 10px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .pagination .current {
+            background-color: #4776E6;
+            color: white;
+            border-color: #4776E6;
+        }
+    </style>
+</head>
+<body>
+    <div class="courses-container">
+        <div class="courses-header">
+            <h1>Course Catalog</h1>
+            <p>Browse all available courses at the university.</p>
+        </div>
+
+        <div class="filters">
+            <form method="get" class="filter-form">
+                <select name="department" id="department">
+                    <option value="">All Departments</option>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}" {% if request.GET.department == department.id|stringformat:"i" %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <input type="text" name="search" placeholder="Search courses..." value="{{ request.GET.search|default:'' }}">
+
+                <button type="submit" class="btn">Filter</button>
+                <a href="{% url 'academics:course_list' %}" class="btn" style="background-color: #6c757d;">Reset</a>
+            </form>
+        </div>
+
+        {% if courses %}
+            <div class="course-grid">
+                {% for course in courses %}
+                    <a href="{% url 'academics:course_detail' course.pk %}" class="course-card">
+                        <div class="course-info">
+                            <span class="course-code">{{ course.code }}</span>
+                            <h3 class="course-name">{{ course.name }}</h3>
+                            <div class="course-department">{{ course.department.name }}</div>
+                            <span class="course-credits">{{ course.credits }} Credits</span>
+                            <p class="course-description">{{ course.description|truncatechars:100 }}</p>
+                        </div>
+                    </a>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Previous</a>
+                    {% endif %}
+
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <a class="current">{{ i }}</a>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?page={{ i }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ i }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+        {% else %}
+            <div class="no-results">
+                <h2>No courses found</h2>
+                <p>Try adjusting your search criteria or browse all departments.</p>
+                <a href="{% url 'academics:course_list' %}" class="btn">View All Courses</a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

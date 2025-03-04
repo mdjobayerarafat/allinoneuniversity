@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Menu - UniHub</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E<!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Daily Menu - UniHub</title>
+                <style>
+                    .container {
+                        max-width: 1000px;
+                        margin: 0 auto;
+                        padding: 20px;
+                    }
+
+                    .header {
+                        padding-bottom: 20px;
+                        margin-bottom: 30px;
+                        border-bottom: 2px solid #4776E6;
+                    }
+
+                    .info-section {
+                        display: grid;
+                        grid-template-columns: 2fr 1fr;
+                        gap: 20px;
+                        margin-bottom: 30px;
+                    }
+
+                    .info-card {
+                        background-color: white;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        padding: 20px;
+                    }
+
+                    .cafeteria-details {
+                        display: flex;
+                        gap: 20px;
+                    }
+
+                    .cafeteria-image {
+                        width: 120px;
+                        height: 120px;
+                        border-radius: 8px;
+                        object-fit: cover;
+                    }
+
+                    .cafeteria-info h2 {
+                        margin-top: 0;
+                    }
+
+                    .section-title {
+                        margin-top: 40px;
+                        margin-bottom: 20px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px solid #ddd;
+                    }
+
+                    .menu-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                        gap: 20px;
+                    }
+
+                    .menu-item {
+                        background-color: white;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                        overflow: hidden;
+                    }
+
+                    .item-image {
+                        width: 100%;
+                        height: 150px;
+                        object-fit: cover;
+                    }
+
+                    .item-info {
+                        padding: 15px;
+                    }
+
+                    .category-badge {
+                        display: inline-block;
+                        background-color: #f0f0f0;
+                        padding: 3px 8px;
+                        border-radius: 4px;
+                        font-size: 12px;
+                        margin-bottom: 10px;
+                    }
+
+                    .item-name {
+                        margin: 0 0 10px;
+                        color: #333;
+                    }
+
+                    .item-description {
+                        color: #6c757d;
+                        margin-bottom: 10px;
+                        font-size: 0.9em;
+                    }
+
+                    .item-price {
+                        font-weight: bold;
+                        color: #4776E6;
+                    }
+
+                    .btn {
+                        padding: 10px 20px;
+                        background-color: #4776E6;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        text-decoration: none;
+                        display: inline-block;
+                        font-weight: bold;
+                        margin-top: 15px;
+                    }
+
+                    .date-nav {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        margin-bottom: 20px;
+                        background-color: #f8f9fa;
+                        padding: 10px 15px;
+                        border-radius: 8px;
+                    }
+
+                    .date-nav a {
+                        color: #4776E6;
+                        text-decoration: none;
+                        font-weight: bold;
+                    }
+
+                    .current-date {
+                        font-weight: bold;
+                        font-size: 1.2em;
+                    }
+
+                    .no-menu {
+                        text-align: center;
+                        padding: 50px;
+                        background-color: #f8f9fa;
+                        border-radius: 8px;
+                        margin-top: 30px;
+                    }
+
+                    @media (max-width: 768px) {
+                        .info-section {
+                            grid-template-columns: 1fr;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>Daily Menu</h1>
+                        <p>View today's menu offerings from our campus cafeterias.</p>
+                    </div>
+
+                    {% if daily_menu %}
+                        <div class="date-nav">
+                            <a href="?date={{ daily_menu.date|date:'Y-m-d'|add_days:-1 }}&cafeteria={{ daily_menu.cafeteria.id }}">&laquo; Previous Day</a>
+                            <span class="current-date">{{ daily_menu.date|date:"l, F j, Y" }}</span>
+                            <a href="?date={{ daily_menu.date|date:'Y-m-d'|add_days:1 }}&cafeteria={{ daily_menu.cafeteria.id }}">Next Day &raquo;</a>
+                        </div>
+
+                        <div class="info-section">
+                            <div class="info-card">
+                                <div class="cafeteria-details">
+                                    {% if daily_menu.cafeteria.image %}
+                                        <img src="{{ daily_menu.cafeteria.image.url }}" alt="{{ daily_menu.cafeteria.name }}" class="cafeteria-image">
+                                    {% endif %}
+                                    <div class="cafeteria-info">
+                                        <h2>{{ daily_menu.cafeteria.name }}</h2>
+                                        <p>{{ daily_menu.cafeteria.location }}</p>
+                                        <p><strong>Hours:</strong> {{ daily_menu.cafeteria.opening_time|time:"g:i A" }} - {{ daily_menu.cafeteria.closing_time|time:"g:i A" }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <h3>Place an Order</h3>
+                                <p>Order food from this cafeteria for pickup or delivery.</p>
+                                <a href="{% url 'cafeteria:create_order' %}?cafeteria={{ daily_menu.cafeteria.id }}" class="btn">Order Now</a>
+                            </div>
+                        </div>
+
+                        <h2 class="section-title">Menu Items</h2>
+                        <div class="menu-grid">
+                            {% for item in daily_menu.items.all %}
+                                <div class="menu-item">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="item-image">
+                                    {% endif %}
+                                    <div class="item-info">
+                                        <span class="category-badge">{{ item.category }}</span>
+                                        <h3 class="item-name">{{ item.name }}</h3>
+                                        <p class="item-description">{{ item.description }}</p>
+                                        <div class="item-price">${{ item.price }}</div>
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <p>No menu items available for this date.</p>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-menu">
+                            <h2>No Menu Available</h2>
+                            <p>There is no menu available for the selected date and cafeteria.</p>
+                            <a href="{% url 'cafeteria:cafeteria_list' %}" class="btn">Browse Cafeterias</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </body>
+            </html>

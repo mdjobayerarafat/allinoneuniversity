@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Assignments - UniHub</title>
+    <style>
+        .assignments-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .assignments-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .filters {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .btn.active {
+            background-color: #2b4d98;
+        }
+
+        .assignment-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .assignment-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-left: 4px solid #4776E6;
+        }
+
+        .assignment-item.past {
+            border-left: 4px solid #6c757d;
+        }
+
+        .assignment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .assignment-title {
+            margin: 0;
+            color: #333;
+        }
+
+        .course-code {
+            display: inline-block;
+            background-color: #4776E6;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .due-date {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .past .due-date {
+            color: #6c757d;
+        }
+
+        .time-remaining {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .section-info {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .no-assignments {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            color: #6c757d;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+
+        .pagination a {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: #4776E6;
+            text-decoration: none;
+        }
+
+        .pagination .current {
+            background-color: #4776E6;
+            color: white;
+            border-color: #4776E6;
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .assignment-header {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="assignments-container">
+        <div class="assignments-header">
+            <h1>My Assignments</h1>
+        </div>
+
+        <div class="filters">
+            <div class="filter-form">
+                <a href="{% url 'academics:assignment_list' %}" class="btn {% if not request.GET.status %}active{% endif %}">All</a>
+                <a href="{% url 'academics:assignment_list' %}?status=upcoming" class="btn {% if request.GET.status == 'upcoming' %}active{% endif %}">Upcoming</a>
+                <a href="{% url 'academics:assignment_list' %}?status=past" class="btn {% if request.GET.status == 'past' %}active{% endif %}">Past</a>
+            </div>
+        </div>
+
+        {% if assignments %}
+            <div class="assignment-list">
+                {% for assignment in assignments %}
+                    <div class="assignment-item {% if assignment.due_date < now %}past{% endif %}">
+                        <div class="assignment-header">
+                            <h2 class="assignment-title">
+                                <span class="course-code">{{ assignment.class_section.course.code }}</span>
+                                {{ assignment.title }}
+                            </h2>
+                            <div class="due-date">
+                                Due: {{ assignment.due_date|date:"F d, Y - g:i A" }}
+                                <div class="time-remaining">
+                                    {% if assignment.due_date >= now %}
+                                        {{ assignment.due_date|timeuntil }} remaining
+                                    {% else %}
+                                        Due {{ assignment.due_date|timesince }} ago
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-info">
+                            {{ assignment.class_section.course.name }} -
+                            Section {{ assignment.class_section.section_number }} -
+                            {{ assignment.class_section.instructor.user.get_full_name }}
+                        </div>
+
+                        <div class="assignment-description">
+                            {{ assignment.description|linebreaks }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if is_paginated %}
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page=1">&laquo; First</a>
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.previous_page_number }}">Previous</a>
+                    {% endif %}
+
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <a class="current">{{ i }}</a>
+                        {% elif i > page_obj.number|add:'-3' and i < page_obj.number|add:'3' %}
+                            <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ i }}">{{ i }}</a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.next_page_number }}">Next</a>
+                        <a href="?{% if request.GET.status %}status={{ request.GET.status }}&{% endif %}page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="no-assignments">
+                <h2>No assignments found</h2>
+                <p>{% if request.GET.status %}Try changing your filter or{% else %}You don't have any assignments assigned{% endif %} check back later.</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
