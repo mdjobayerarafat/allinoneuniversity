@@ -210,10 +210,10 @@
             </div>
         {% endif %}
 
-        <div class="info-section">
+       <div class="info-section">
             <h2 class="section-title">Office Hours</h2>
             <div class="office-hours">
-                {% if faculty_member.office_hours %}
+                {% if faculty_member.office_hours.all %}
                     <ul>
                         {% for hour in faculty_member.office_hours.all %}
                             <li>

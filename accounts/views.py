@@ -1,5 +1,6 @@
 import logging
 import os
+from django.utils import timezone
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -8,60 +9,50 @@ from django.views.generic import View, UpdateView, DetailView, FormView
 from django.urls import reverse_lazy
 from django.contrib import messages
 
+from academics.models import Enrollment, Assignment, ClassSection, Course, Faculty, Department, Exam
 from .models import User
 from .forms import UserLoginForm, UserRegistrationForm, UserProfileForm, PasswordChangeForm
 
 # Create logger
 logger = logging.getLogger(__name__)
 
-
 class LoginView(FormView):
     template_name = 'accounts/login.html'
     form_class = UserLoginForm
     success_url = reverse_lazy('dashboard')
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
     def form_valid(self, form):
-        username = form.cleaned_data.get('username')
-        password = form.cleaned_data.get('password')
+        user = form.cleaned_data['user']
 
-        logger.info(f"Attempting login for username: {username}")
+        # Debug logging before login
+        logger.info(f"Attempting to log in user: {user.username}")
+        logger.info(f"User authentication status: {user.is_authenticated}")
 
-        # Debug authentication details
-        try:
-            user_obj = User.objects.get(username=username)
-            logger.info(f"User found in database: {username}")
-            logger.info(f"User is_active: {user_obj.is_active}")
-            logger.info(f"Password check: {user_obj.check_password(password)}")
-        except User.DoesNotExist:
-            logger.warning(f"User {username} not found in database")
+        login(self.request, user)
 
-        # Use authenticate with request
-        user = authenticate(self.request, username=username, password=password)
-        logger.info(f"Authentication result: {'Success' if user else 'Failed'}")
+        # Debug logging after login
+        logger.info(f"Login successful for user: {user.username}")
+        logger.info(f"Session ID: {self.request.session.session_key}")
 
-        if user is not None:
-            if user.is_active:
-                login(self.request, user)
-                logger.info(f"Login successful for {username}")
-                messages.success(self.request, f'Welcome back, {user.first_name}!')
+        display_name = user.first_name if user.first_name else user.username
+        messages.success(self.request, f'Welcome back, {display_name}!')
 
-                next_url = self.request.GET.get('next')
-                if next_url:
-                    return redirect(next_url)
-
-                return redirect(self.get_success_url())
-            else:
-                messages.error(self.request, 'Your account is inactive.')
-                return self.form_invalid(form)
-        else:
-            messages.error(self.request, 'Invalid username or password.')
-            return self.form_invalid(form)
+        next_url = self.request.GET.get('next')
+        return redirect(next_url) if next_url else redirect(self.success_url)
 
     def form_invalid(self, form):
-        logger.warning(f"Form validation failed: {form.errors}")
+        # Enhanced error logging
+        logger.warning("Login form validation failed")
+        logger.warning(f"Form errors: {form.errors}")
+        logger.warning(f"Form data: {form.cleaned_data}")
+
+        messages.error(self.request, "Invalid username or password.")
         return super().form_invalid(form)
-
-
 class LogoutView(View):
     def get(self, request):
         logout(request)
@@ -160,24 +151,112 @@ class PasswordChangeView(LoginRequiredMixin, FormView):
 
 
 class DashboardView(LoginRequiredMixin, View):
-    login_url = '/accounts/login/'
-    redirect_field_name = 'next'
+            login_url = '/accounts/login/'
+            redirect_field_name = 'next'
 
-    def get(self, request):
-        # Debug logging to check user authentication status
-        logger.info(f"Dashboard accessed by: {request.user.username}")
-        logger.info(f"User authenticated: {request.user.is_authenticated}")
-        logger.info(f"User role: {request.user.role if hasattr(request.user, 'role') else 'No role'}")
-        logger.info(f"User is_active: {request.user.is_active}")
+            def get(self, request):
+                logger.info(f"Dashboard accessed by: {request.user.username} with role {request.user.role}")
 
-        # Get user-specific data for the dashboard
-        context = {
-            'user': request.user,
-            # Add more context data for different user roles if needed
-        }
+                # Redirect to role-specific dashboard
+                if request.user.role == 'student':
+                    return self.student_dashboard(request)
+                elif request.user.role == 'faculty':
+                    return self.faculty_dashboard(request)
+                elif request.user.role == 'staff':
+                    return self.staff_dashboard(request)
+                else:
+                    return self.admin_dashboard(request)
 
-        # Render the dashboard with user context
-        return render(request, 'accounts/dashboard.html', context)
+            def student_dashboard(self, request):
+                # Get current semester enrollments
+                current_semester = "Spring 2025"
+                enrollments = Enrollment.objects.filter(
+                    student=request.user,
+                    class_section__semester=current_semester
+                ).select_related('class_section', 'class_section__course')
+
+                # Get the first enrollment to determine the section
+                enrollment = enrollments.first()
+                section = enrollment.class_section if enrollment else None
+
+                # Debugging: Print section details
+                if section:
+                    print(f"Section ID: {section.id}, Section Name: {section.name}")
+                else:
+                    print("No section found for the student.")
+
+                # Get upcoming assignments and exams
+                now = timezone.now()
+                section_ids = [e.class_section_id for e in enrollments]
+                assignments = Assignment.objects.filter(
+                    class_section_id__in=section_ids,
+                    due_date__gte=now
+                ).order_by('due_date')[:5]
+
+                exams = Exam.objects.filter(
+                    class_section_id__in=section_ids,
+                    date__gte=now
+                ).order_by('date')[:5]
+
+                context = {
+                    'enrollments': enrollments,
+                    'assignments': assignments,
+                    'exams': exams,
+                    'role': 'student',
+                    'section': section  # Add the section to the context
+                }
+                return render(request, 'accounts/student_dashboard.html', context)
+
+            def faculty_dashboard(self, request):
+                # Get current teaching schedule
+                current_semester = "Spring 2025"
+                classes = ClassSection.objects.filter(
+                    instructor__user=request.user,
+                    semester=current_semester
+                ).select_related('course')
+
+                # Get upcoming assignments and exams to grade
+                section_ids = [c.id for c in classes]
+                assignments = Assignment.objects.filter(
+                    class_section_id__in=section_ids
+                ).order_by('due_date')[:5]
+
+                context = {
+                    'classes': classes,
+                    'assignments': assignments,
+                    'role': 'faculty'
+                }
+                return render(request, 'accounts/faculty_dashboard.html', context)
+
+            def staff_dashboard(self, request):
+                # Get department info if staff is assigned to one
+                department = request.user.department
+                if department:
+                    courses = Course.objects.filter(department=department)
+                    faculty = Faculty.objects.filter(department=department)
+                    students = User.objects.filter(role='student', department=department)
+                else:
+                    courses = Course.objects.none()
+                    faculty = Faculty.objects.none()
+                    students = User.objects.none()
+
+                context = {
+                    'department': department,
+                    'courses_count': courses.count(),
+                    'faculty_count': faculty.count(),
+                    'students_count': students.count(),
+                    'role': 'staff'
+                }
+                return render(request, 'accounts/staff_dashboard.html', context)
+
+            def admin_dashboard(self, request):
+                context = {
+                    'total_users': User.objects.count(),
+                    'total_courses': Course.objects.count(),
+                    'total_departments': Department.objects.count(),
+                    'role': 'admin'
+                }
+                return render(request, 'accounts/admin_dashboard.html', context)
 
 
 def debug_auth(request):

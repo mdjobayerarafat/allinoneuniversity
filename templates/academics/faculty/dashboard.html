@@ -1,0 +1,132 @@
+
+
+{% block content %}
+<div class="container">
+    <h1>Faculty Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">{{ faculty.user.get_full_name }}</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">{{ faculty.title }}</h6>
+                    <p class="card-text">{{ faculty.department.name }}</p>
+                    {% if faculty.profile_picture %}
+                        <img src="{{ faculty.profile_picture.url }}" class="img-fluid mb-3" alt="Profile Picture">
+                    {% endif %}
+                    <p><i class="fas fa-map-marker-alt"></i> Office: {{ faculty.office_location }}</p>
+                    {% if faculty.office_phone %}
+                        <p><i class="fas fa-phone"></i> {{ faculty.office_phone }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">Quick Links</div>
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'academics:faculty_class_list' %}" class="list-group-item list-group-item-action">
+                        My Classes
+                    </a>
+                    {% if is_department_head %}
+                        <a href="{% url 'academics:department_faculty' %}" class="list-group-item list-group-item-action">
+                            Department Faculty
+                        </a>
+                        <a href="{% url 'academics:department_courses' %}" class="list-group-item list-group-item-action">
+                            Department Courses
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            {% if is_department_head and department_data %}
+            <div class="card mb-4">
+                <div class="card-header">Department Overview</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <h3>{{ department_data.faculty_count }}</h3>
+                            <p>Faculty Members</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3>{{ department_data.course_count }}</h3>
+                            <p>Courses</p>
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <h3>{{ department_data.section_count }}</h3>
+                            <p>Current Sections</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mb-4">
+                <div class="card-header">My Classes</div>
+                <div class="card-body">
+                    {% if classes %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Section</th>
+                                        <th>Schedule</th>
+                                        <th>Enrolled</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for section in classes %}
+                                    <tr>
+                                        <td>{{ section.course.code }}: {{ section.course.name }}</td>
+                                        <td>{{ section.section_number }}</td>
+                                        <td>
+                                            {% for schedule in section.schedules.all %}
+                                                {{ schedule.get_day_display }} {{ schedule.start_time|time:"g:i A" }}-{{ schedule.end_time|time:"g:i A" }}{% if not forloop.last %}<br>{% endif %}
+                                            {% empty %}
+                                                Not scheduled
+                                            {% endfor %}
+                                        </td>
+                                        <td>{{ section.enrolled }}/{{ section.capacity }}</td>
+                                        <td>
+                                            <a href="{% url 'academics:faculty_class_detail' pk=section.pk %}" class="btn btn-sm btn-primary">View</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>You are not teaching any classes this semester.</p>
+                    {% endif %}
+                    <a href="{% url 'academics:faculty_class_list' %}" class="btn btn-outline-primary">View All Classes</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">Courses Qualified to Teach</div>
+                <div class="card-body">
+                    {% if qualified_courses %}
+                        <div class="row">
+                            {% for course in qualified_courses %}
+                                <div class="col-md-6 mb-2">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ course.code }}</h5>
+                                            <h6 class="card-subtitle mb-2 text-muted">{{ course.name }}</h6>
+                                            <p class="card-text small">{{ course.description|truncatechars:100 }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>You are not qualified for any specific courses yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

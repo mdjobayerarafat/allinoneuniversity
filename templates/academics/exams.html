@@ -200,7 +200,7 @@
                                     {% if exam.date >= now|date:"Y-m-d" %}
                                         {{ exam.date|timeuntil:now }} until exam
                                     {% else %}
-                                        {{ exam.date|timesince:now }} ago
+                                        ago
                                     {% endif %}
                                 </div>
                             </div>

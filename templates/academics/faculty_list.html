@@ -3,137 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ section.course.code }} Section {{ section.section_number }} - UniHub</title>
+    <title>Faculty Directory - UniHub</title>
     <style>
-        /* CSS styles remain unchanged */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+            color: white;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 2.2em;
+        }
+
+        .search-filters {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-form input, .search-form select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+
+        .search-form button {
+            background-color: #4776E6;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .faculty-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .faculty-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .faculty-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .faculty-header {
+            position: relative;
+            height: 100px;
+            background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+        }
+
+        .faculty-picture {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            position: absolute;
+            bottom: -30px;
+            left: 20px;
+        }
+
+        .faculty-info {
+            padding: 40px 20px 20px;
+        }
+
+        .faculty-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .faculty-title {
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+
+        .faculty-dept {
+            font-size: 0.9em;
+            color: #4776E6;
+        }
+
+        .pagination {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination a {
+            display: inline-block;
+            padding: 8px 15px;
+            margin: 0 5px;
+            border-radius: 4px;
+            background-color: white;
+            color: #4776E6;
+            text-decoration: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .pagination a.active {
+            background-color: #4776E6;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <div class="section-container">
-        <!-- Display messages if any -->
-        {% if messages %}
-            {% for message in messages %}
-                <div class="messages message-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        <div class="section-header">
-            <h1><span class="course-code">{{ section.course.code }}</span> {{ section.course.name }} - Section {{ section.section_number }}</h1>
-            <p>{{ section.semester }}</p>
+    <div class="container">
+        <div class="page-header">
+            <h1>Faculty Directory</h1>
         </div>
 
-        <div class="section-info">
-            <h2>Section Information</h2>
-            <p><strong>Course:</strong> {{ section.course.name }}</p>
-            <p><strong>Section Number:</strong> {{ section.section_number }}</p>
-            <p><strong>Location:</strong> {{ section.location }}</p>
-            <p><strong>Capacity:</strong>
-                {% if section.enrolled < section.capacity %}
-                    <span class="status-open">{{ section.enrolled }} / {{ section.capacity }} ({{ section.capacity|add:-section.enrolled }} seats available)</span>
-                {% else %}
-                    <span class="status-closed">{{ section.enrolled }} / {{ section.capacity }} (Class Full)</span>
-                {% endif %}
-            </p>
-        </div>
-
-        <div class="instructor-info">
-            <h2>Instructor</h2>
-            <p><strong>Name:</strong> {{ section.instructor.user.get_full_name }}</p>
-            <p><strong>Title:</strong> {{ section.instructor.title }}</p>
-            <p><strong>Email:</strong> {{ section.instructor.user.email }}</p>
-            <p><strong>Office:</strong> {{ section.instructor.office_location }}</p>
-            <a href="{% url 'academics:faculty_detail' section.instructor.pk %}">View Instructor Profile</a>
-        </div>
-
-        <h2 class="section-title">Class Schedule</h2>
-        {% if schedules %}
-            <table class="schedule-table">
-                <thead>
-                    <tr>
-                        <th>Day</th>
-                        <th>Time</th>
-                        <th>Location</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for schedule in schedules %}
-                        <tr>
-                            <td>{{ schedule.get_day_display }}</td>
-                            <td>{{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}</td>
-                            <td>{{ section.location }}</td>
-                        </tr>
+        <div class="search-filters">
+            <form method="GET" class="search-form">
+                <input type="text" name="search" placeholder="Search by name or title" value="{{ request.GET.search }}">
+                <select name="department">
+                    <option value="">All Departments</option>
+                    {% for department in departments %}
+                        <option value="{{ department.id }}" {% if request.GET.department == department.id|stringformat:"i" %}selected{% endif %}>
+                            {{ department.name }}
+                        </option>
                     {% endfor %}
-                </tbody>
-            </table>
-        {% else %}
-            <p>No schedule information available.</p>
-        {% endif %}
+                </select>
+                <button type="submit">Search</button>
+            </form>
+        </div>
 
-        <h2 class="section-title">Assignments</h2>
-        <div class="assignments-list">
-            {% if assignments %}
-                {% for assignment in assignments %}
-                    <div class="assignment-item {% if assignment.due_date|date:'Y-m-d' >= now|date:'Y-m-d' %}upcoming{% else %}past{% endif %}">
-                        <h3>{{ assignment.title }}</h3>
-                        <p>{{ assignment.description|truncatewords:30 }}</p>
-                        <p class="due-date">
-                            <strong>Due:</strong> {{ assignment.due_date|date:"F d, Y - g:i A" }}
-                            {% if assignment.due_date|date:'Y-m-d' >= now|date:'Y-m-d' %}
-                                ({{ assignment.due_date|timeuntil }} remaining)
+        <div class="faculty-grid">
+            {% if faculty %}
+                {% for member in faculty %}
+                    <a href="{% url 'academics:faculty_detail' member.pk %}" class="faculty-card">
+                        <div class="faculty-header">
+                            {% if member.profile_picture %}
+                                <img src="{{ member.profile_picture.url }}" alt="{{ member.user.get_full_name }}" class="faculty-picture">
                             {% else %}
-                                ({{ assignment.due_date|timesince }} ago)
+                                <img src="/static/academics/images/default-faculty.png" alt="Default Faculty Image" class="faculty-picture">
                             {% endif %}
-                        </p>
-                    </div>
+                        </div>
+                        <div class="faculty-info">
+                            <div class="faculty-name">{{ member.user.get_full_name }}</div>
+                            <div class="faculty-title">{{ member.title }}</div>
+                            <div class="faculty-dept">{{ member.department.name }}</div>
+                        </div>
+                    </a>
                 {% endfor %}
             {% else %}
-                <p>No assignments have been posted for this class.</p>
+                <p>No faculty members found matching your criteria.</p>
             {% endif %}
         </div>
 
-        <h2 class="section-title">Exams</h2>
-        <div class="exams-list">
-            {% if exams %}
-                {% for exam in exams %}
-                    <div class="exam-item {% if exam.date|date:'Y-m-d' >= now|date:'Y-m-d' %}upcoming{% else %}past{% endif %}">
-                        <h3>{{ exam.title }}</h3>
-                        <p>{{ exam.description|truncatewords:30 }}</p>
-                        <p class="due-date">
-                            <strong>Date:</strong> {{ exam.date|date:"F d, Y" }} at {{ exam.time|time:"g:i A" }}
-                            {% if exam.date|date:'Y-m-d' >= now|date:'Y-m-d' %}
-                                ({{ exam.date|timeuntil }} from now)
-                            {% else %}
-                                ({{ exam.date|timesince }} ago)
-                            {% endif %}
-                        </p>
-                    </div>
-                {% endfor %}
-            {% else %}
-                <p>No exams have been scheduled for this class.</p>
-            {% endif %}
-        </div>
+        {% if is_paginated %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">&laquo; First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">Previous</a>
+                {% endif %}
 
-        {% if user.is_authenticated %}
-            <div class="enrollment-actions">
-                {% if is_enrolled %}
-                    <form action="{% url 'academics:drop_class' section.pk %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to drop this class?')">Drop Class</button>
-                    </form>
-                {% else %}
-                    <form action="{% url 'academics:enroll' section.pk %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-primary" {% if section.enrolled >= section.capacity %}disabled{% endif %}>
-                            {% if section.enrolled >= section.capacity %}Class Full{% else %}Enroll in Class{% endif %}
-                        </button>
-                    </form>
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <a class="active" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">{{ num }}</a>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">Next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">Last &raquo;</a>
                 {% endif %}
             </div>
         {% endif %}
-
-        <a href="{% url 'academics:course_detail' section.course.pk %}" class="back-link">← Back to Course</a>
     </div>
 </body>
 </html>

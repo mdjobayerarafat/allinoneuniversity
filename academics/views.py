@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Department, Faculty, Course, ClassSection, Enrollment, Assignment, Exam
+from .models import Department, Faculty, Course, ClassSection, Enrollment, Assignment, Exam, ClassSchedule
 
 
 class DepartmentListView(ListView):
@@ -101,56 +101,101 @@ class CourseDetailView(DetailView):
         return context
 
 
-class MyScheduleView(LoginRequiredMixin, ListView):
-    template_name = 'academics/my_schedule.html'
-    context_object_name = 'enrollments'
-
-    def get_queryset(self):
-        current_semester = "Spring 2025"  # This could be determined programmatically
-        return Enrollment.objects.filter(
-            student=self.request.user,
-            class_section__semester=current_semester
-        ).select_related('class_section', 'class_section__course', 'class_section__instructor')
+class ClassScheduleView(LoginRequiredMixin, DetailView):
+    model = ClassSection
+    template_name = 'academics/class_schedule.html'
+    context_object_name = 'section'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Organize the schedule by day
-        schedule = {
-            'MON': [], 'TUE': [], 'WED': [], 'THU': [], 'FRI': [], 'SAT': [], 'SUN': []
-        }
+        section = self.object
 
-        for enrollment in context['enrollments']:
-            class_schedules = enrollment.class_section.schedules.all()
-            for class_schedule in class_schedules:
-                schedule[class_schedule.day].append({
-                    'section': enrollment.class_section,
-                    'start_time': class_schedule.start_time,
-                    'end_time': class_schedule.end_time
-                })
+        # Get all schedules for this class section
+        context['schedules'] = section.schedules.all().order_by('day')
 
-        # Sort each day's classes by start time
-        for day in schedule:
-            schedule[day].sort(key=lambda x: x['start_time'])
+        # Add day labels dictionary for easy rendering
+        context['day_labels'] = dict(ClassSchedule.DAYS)
 
-        context['schedule'] = schedule
-
-        # Get upcoming assignments and exams
-        now = timezone.now()
-        enrollments = context['enrollments']
-        section_ids = [e.class_section_id for e in enrollments]
-
-        context['upcoming_assignments'] = Assignment.objects.filter(
-            class_section_id__in=section_ids,
-            due_date__gte=now
-        ).order_by('due_date')[:5]
-
-        context['upcoming_exams'] = Exam.objects.filter(
-            class_section_id__in=section_ids,
-            date__gte=now
-        ).order_by('date')[:5]
+        # Add enrollment status if user is logged in
+        if self.request.user.is_authenticated:
+            context['is_enrolled'] = Enrollment.objects.filter(
+                student=self.request.user,
+                class_section=section
+            ).exists()
 
         return context
+class MyScheduleView(LoginRequiredMixin, View):
+            template_name = 'academics/my_schedule.html'
 
+            def get(self, request, section_id=None):
+                # Get current semester enrollments
+                current_semester = "Spring 2025"  # Could be determined programmatically
+                enrollments = Enrollment.objects.filter(
+                    student=self.request.user,
+                    class_section__semester=current_semester
+                ).select_related('class_section', 'class_section__course', 'class_section__instructor')
+
+                # Check if user has any enrollments
+                if not enrollments.exists():
+                    context = {
+                        'no_enrollments': True,
+                        'day_labels': dict(ClassSchedule.DAYS)
+                    }
+                    messages.info(request, "You are not enrolled in any classes this semester.")
+                    return render(request, self.template_name, context)
+
+                # Get the section ID from the URL parameter or query param or use the first enrollment
+                if section_id:
+                    try:
+                        # Verify user is enrolled in this section
+                        section = ClassSection.objects.get(
+                            id=section_id,
+                            enrollments__student=request.user
+                        )
+                    except ClassSection.DoesNotExist:
+                        # If not enrolled or doesn't exist, use first enrollment
+                        section = enrollments.first().class_section
+                else:
+                    section_id_from_query = request.GET.get('section')
+                    if section_id_from_query:
+                        try:
+                            section = ClassSection.objects.get(
+                                id=section_id_from_query,
+                                enrollments__student=request.user
+                            )
+                        except ClassSection.DoesNotExist:
+                            section = enrollments.first().class_section
+                    else:
+                        # Default to first enrollment if no section specified
+                        section = enrollments.first().class_section
+
+                # Get all schedules for this specific section
+                schedules = section.schedules.all().order_by('day')
+
+                # Get upcoming assignments and exams for this section
+                now = timezone.now()
+                upcoming_assignments = Assignment.objects.filter(
+                    class_section=section,
+                    due_date__gte=now
+                ).order_by('due_date')[:5]
+
+                upcoming_exams = Exam.objects.filter(
+                    class_section=section,
+                    date__gte=now
+                ).order_by('date')[:5]
+
+                context = {
+                    'section': section,
+                    'schedules': schedules,
+                    'day_labels': dict(ClassSchedule.DAYS),
+                    'upcoming_assignments': upcoming_assignments,
+                    'upcoming_exams': upcoming_exams,
+                    'enrollments': enrollments,
+                    'is_enrolled': True,
+                    'no_enrollments': False
+                }
+
+                return render(request, self.template_name, context)
 
 class ClassSectionDetailView(DetailView):
     model = ClassSection
@@ -261,5 +306,211 @@ class ExamListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(date__lt=timezone.now())
 
         return queryset.order_by('date')
+
+class FacultyDashboardView(LoginRequiredMixin, View):
+    template_name = 'academics/faculty/dashboard.html'
+
+    def get(self, request):
+        try:
+            faculty = Faculty.objects.get(user=request.user)
+            is_department_head = faculty.is_department_head()
+            current_semester = "Spring 2025"  # Could be determined programmatically
+
+            # Get classes taught by this faculty
+            classes = ClassSection.objects.filter(
+                instructor=faculty,
+                semester=current_semester
+            ).select_related('course')
+
+            # Get qualified courses
+            qualified_courses = Course.objects.filter(
+                qualified_faculty__faculty=faculty
+            ).distinct()
+
+            # Get department data if department head
+            department_data = None
+            if is_department_head:
+                department_faculty = Faculty.objects.filter(department=faculty.department)
+                department_courses = Course.objects.filter(department=faculty.department)
+                department_sections = ClassSection.objects.filter(
+                    course__department=faculty.department,
+                    semester=current_semester
+                )
+                department_data = {
+                    'faculty_count': department_faculty.count(),
+                    'course_count': department_courses.count(),
+                    'section_count': department_sections.count()
+                }
+
+            context = {
+                'faculty': faculty,
+                'is_department_head': is_department_head,
+                'classes': classes,
+                'qualified_courses': qualified_courses,
+                'department_data': department_data
+            }
+            return render(request, self.template_name, context)
+        except Faculty.DoesNotExist:
+            messages.error(request, "You don't have faculty privileges.")
+            return redirect('home')
+
+class FacultyClassListView(LoginRequiredMixin, ListView):
+    template_name = 'academics/faculty/class_list.html'
+    context_object_name = 'classes'
+
+    def get_queryset(self):
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            semester = self.request.GET.get('semester', "Spring 2025")
+
+            # Department heads can see all department classes
+            if faculty.is_department_head():
+                return ClassSection.objects.filter(
+                    course__department=faculty.department,
+                    semester=semester
+                ).select_related('course', 'instructor')
+
+            # Regular faculty see only their classes
+            return ClassSection.objects.filter(
+                instructor=faculty,
+                semester=semester
+            ).select_related('course')
+        except Faculty.DoesNotExist:
+            return ClassSection.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            context['faculty'] = faculty
+            context['is_department_head'] = faculty.is_department_head()
+            context['current_semester'] = self.request.GET.get('semester', "Spring 2025")
+        except Faculty.DoesNotExist:
+            context['is_department_head'] = False
+        return context
+
+class FacultyClassDetailView(LoginRequiredMixin, DetailView):
+    model = ClassSection
+    template_name = 'academics/faculty/class_detail.html'
+    context_object_name = 'section'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        faculty = Faculty.objects.get(user=self.request.user)
+        section = self.object
+
+        # Check if user is authorized to view this section
+        if section.instructor == faculty or (faculty.is_department_head() and section.course.department == faculty.department):
+            context['is_authorized'] = True
+            context['is_instructor'] = section.instructor == faculty
+            context['is_department_head'] = faculty.is_department_head()
+            context['schedules'] = section.schedules.all().order_by('day')
+            context['enrolled_students'] = section.enrollments.select_related('student').order_by('student__last_name')
+            context['assignments'] = section.assignments.all().order_by('due_date')
+            context['exams'] = section.exams.all().order_by('date')
+        else:
+            context['is_authorized'] = False
+
+        return context
+
+class FacultyClassScheduleEditView(LoginRequiredMixin, View):
+    template_name = 'academics/faculty/schedule_edit.html'
+
+    def get(self, request, pk):
+        section = get_object_or_404(ClassSection, pk=pk)
+        faculty = get_object_or_404(Faculty, user=request.user)
+
+        # Check authorization
+        if not (section.instructor == faculty or (faculty.is_department_head() and section.course.department == faculty.department)):
+            messages.error(request, "You are not authorized to edit this schedule.")
+            return redirect('academics:faculty_dashboard')
+
+        schedules = section.schedules.all().order_by('day')
+        context = {
+            'section': section,
+            'schedules': schedules,
+            'day_choices': ClassSchedule.DAYS,
+            'is_department_head': faculty.is_department_head(),
+            'faculty': faculty
+        }
+        return render(request, self.template_name, context)
+
+    def post(self, request, pk):
+        section = get_object_or_404(ClassSection, pk=pk)
+        faculty = get_object_or_404(Faculty, user=request.user)
+
+        # Check authorization
+        if not (section.instructor == faculty or (faculty.is_department_head() and section.course.department == faculty.department)):
+            messages.error(request, "You are not authorized to edit this schedule.")
+            return redirect('academics:faculty_dashboard')
+
+        # Delete existing schedules if replacing them
+        if request.POST.get('replace_schedules'):
+            section.schedules.all().delete()
+
+        # Process new schedule entries
+        days = request.POST.getlist('day')
+        start_times = request.POST.getlist('start_time')
+        end_times = request.POST.getlist('end_time')
+
+        for i in range(len(days)):
+            if i < len(start_times) and i < len(end_times):
+                ClassSchedule.objects.create(
+                    class_section=section,
+                    day=days[i],
+                    start_time=start_times[i],
+                    end_time=end_times[i]
+                )
+
+        messages.success(request, f"Schedule for {section} has been updated.")
+        return redirect('academics:faculty_class_detail', pk=section.pk)
+
+class DepartmentHeadFacultyListView(LoginRequiredMixin, ListView):
+    template_name = 'academics/faculty/department_faculty.html'
+    context_object_name = 'faculty_members'
+
+    def get_queryset(self):
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            if faculty.is_department_head():
+                return Faculty.objects.filter(department=faculty.department)
+            return Faculty.objects.none()
+        except Faculty.DoesNotExist:
+            return Faculty.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            context['faculty'] = faculty
+            context['is_department_head'] = faculty.is_department_head()
+            context['department'] = faculty.department
+        except Faculty.DoesNotExist:
+            context['is_department_head'] = False
+        return context
+
+class DepartmentHeadCourseListView(LoginRequiredMixin, ListView):
+    template_name = 'academics/faculty/department_courses.html'
+    context_object_name = 'courses'
+
+    def get_queryset(self):
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            if faculty.is_department_head():
+                return Course.objects.filter(department=faculty.department)
+            return Course.objects.none()
+        except Faculty.DoesNotExist:
+            return Course.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        try:
+            faculty = Faculty.objects.get(user=self.request.user)
+            context['faculty'] = faculty
+            context['is_department_head'] = faculty.is_department_head()
+            context['department'] = faculty.department
+        except Faculty.DoesNotExist:
+            context['is_department_head'] = False
+        return context
 
 

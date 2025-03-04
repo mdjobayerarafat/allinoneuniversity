@@ -1,5 +1,7 @@
 # academics/urls.py
 from django.urls import path
+
+from . import views
 from .views import (
     DepartmentListView,
     DepartmentDetailView,
@@ -36,7 +38,9 @@ urlpatterns = [
     path('sections/<int:pk>/drop/', DropClassView.as_view(), name='drop_class'),
 
     # My Schedule URL
+    path('class-schedule/<int:pk>/', views.ClassScheduleView.as_view(), name='class_schedule'),
     path('my-schedule/', MyScheduleView.as_view(), name='my_schedule'),
+    path('my-schedule/<int:section_id>/', MyScheduleView.as_view(), name='my_schedule_section'),
 
     # Assignment URLs
     path('assignments/', AssignmentListView.as_view(), name='assignment_list'),

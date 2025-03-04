@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ section.course.code }} - {{ section.section_number }} Schedule</title>
+    <style>
+        .schedule-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .schedule-header {
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #4776E6;
+        }
+
+        .schedule-title {
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .course-code {
+            display: inline-block;
+            background-color: #4776E6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        .section-info {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 0.8em;
+            text-transform: uppercase;
+            color: #6c757d;
+        }
+
+        .info-value {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .day-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .day-header {
+            background-color: #4776E6;
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .time-slot {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .time-slot:last-child {
+            border-bottom: none;
+        }
+
+        .time-range {
+            font-weight: bold;
+            color: #4776E6;
+        }
+
+        .no-schedule {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            color: #6c757d;
+            margin-top: 20px;
+        }
+
+        .enrollment-actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-block;
+            text-align: center;
+            margin-left: 10px;
+        }
+
+        .btn-primary {
+            background-color: #4776E6;
+            color: white;
+            border: none;
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="schedule-container">
+        <div class="schedule-header">
+            <h1 class="schedule-title">
+                <div>
+                    <span class="course-code">{{ section.course.code }}</span>
+                    {{ section.course.name }} - Section {{ section.section_number }}
+                </div>
+                <div>{{ section.semester }}</div>
+            </h1>
+        </div>
+
+        <div class="section-info">
+            <div class="info-item">
+                <span class="info-label">Instructor</span>
+                <span class="info-value">{{ section.instructor.user.get_full_name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Location</span>
+                <span class="info-value">{{ section.location }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Capacity</span>
+                <span class="info-value">{{ section.enrolled }} / {{ section.capacity }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Credit Hours</span>
+                <span class="info-value">{{ section.course.credit_hours }}</span>
+            </div>
+        </div>
+
+        <h2>Weekly Schedule</h2>
+
+        {% if schedules %}
+            <div class="schedule-grid">
+                {% regroup schedules by day as day_list %}
+                {% for day_group in day_list %}
+                    <div class="day-card">
+                        <div class="day-header">
+                            {{ day_labels|get_item:day_group.grouper }}
+                        </div>
+                        {% for schedule in day_group.list %}
+                            <div class="time-slot">
+                                <div class="time-range">
+                                    {{ schedule.start_time|time:"g:i A" }} - {{ schedule.end_time|time:"g:i A" }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-schedule">
+                <h3>No schedule information available</h3>
+                <p>This class section does not have any scheduled meeting times.</p>
+            </div>
+        {% endif %}
+
+        {% if user.is_authenticated %}
+            <div class="enrollment-actions">
+                {% if is_enrolled %}
+                    <form method="post" action="{% url 'academics:drop_class' section.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure you want to drop this class?');">
+                            Drop Class
+                        </button>
+                    </form>
+                {% elif section.enrolled < section.capacity %}
+                    <form method="post" action="{% url 'academics:enroll' section.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary">
+                            Enroll in Class
+                        </button>
+                    </form>
+                {% else %}
+                    <button class="btn btn-secondary" disabled>Class Full</button>
+                {% endif %}
+                <a href="{% url 'academics:course_detail' section.course.pk %}" class="btn btn-secondary">
+                    Back to Course
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

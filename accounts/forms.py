@@ -1,23 +1,67 @@
+from venv import logger
+
 from django import forms
 from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from .models import User
 
+
+
 class UserLoginForm(forms.Form):
-    username = forms.CharField(
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'})
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
-    )
+            username = forms.CharField(
+                widget=forms.TextInput(attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Username',
+                    'id': 'id_username',
+                    'autocomplete': 'username'
+                })
+            )
+            password = forms.CharField(
+                widget=forms.PasswordInput(attrs={
+                    'class': 'form-control',
+                    'placeholder': 'Password',
+                    'id': 'id_password',
+                    'autocomplete': 'current-password'
+                })
+            )
 
-    def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request', None)
-        super().__init__(*args, **kwargs)
+            def __init__(self, *args, **kwargs):
+                self.request = kwargs.pop('request', None)
+                super().__init__(*args, **kwargs)
 
-    # Note: Do NOT authenticate in form - let the view handle it
+            def clean(self):
+                cleaned_data = super().clean()
+                username = cleaned_data.get('username', '').strip()
+                password = cleaned_data.get('password', '')
 
+                if username and password:
+                    # Debug logging
+                    logger.info(f"Attempting login validation for username: {username}")
 
+                    try:
+                        user = User.objects.get(username__iexact=username)
+                        logger.info(f"Found user in database: {user.username}")
+                        logger.info(f"User is_active status: {user.is_active}")
+
+                        if not user.is_active:
+                            logger.warning(f"User {username} is inactive")
+                            raise forms.ValidationError("This account is inactive.")
+
+                        # Try authentication with correct case username
+                        user_auth = authenticate(self.request, username=user.username, password=password)
+                        logger.info(f"Authentication result for {username}: {user_auth is not None}")
+
+                        if user_auth is None:
+                            logger.warning(f"Authentication failed for user: {username}")
+                            raise forms.ValidationError("Invalid username or password.")
+
+                        cleaned_data['user'] = user_auth
+
+                    except User.DoesNotExist:
+                        logger.warning(f"User not found: {username}")
+                        raise forms.ValidationError("Invalid username or password.")
+
+                return cleaned_data
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'})
